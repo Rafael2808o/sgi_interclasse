@@ -12,8 +12,9 @@ const documentacao = {
         }
     },
     servers: [
-        { url: 'http://localhost:3000', description: 'Servidor local' },
-        { url: 'https://interclassemanager-seven.vercel.app', description: 'Servidor API' }
+        { url: 'https://interclassemanager-seven.vercel.app', description: 'Servidor API' },
+        { url: 'http://localhost:3000', description: 'Servidor local' }
+
     ],
     security: [
         {
