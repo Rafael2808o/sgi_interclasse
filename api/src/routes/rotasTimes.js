@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { BD } from "../../db.js";
 import { autenticarToken } from "../middlewares/autenticacao.js";
-import { ok, created, badRequest, notFound, conflict, serverError } from "../../utils/responses.js";
+import { ok, created, badRequest, notFound, conflict, serverError } from "../utils/responses.js";
 
 const router = Router();
 
@@ -41,6 +41,9 @@ router.put('/times/:id_time', autenticarToken, async (req, res) => {
         return ok(res, { message: 'Time atualizado com sucesso' });
     } catch (error) {
         console.error('Erro ao atualizar time', error.message);
+        if (error.code === '23503') {
+            return badRequest(res, 'Não foi possível alterar pois o campeonato não existe');
+        }
         return serverError(res, 'Erro ao atualizar time');
     }
 });
@@ -75,6 +78,9 @@ router.post('/times', autenticarToken, async (req, res) => {
         return created(res, 'Time cadastrado com sucesso');
     } catch (error) {
         console.error('Erro ao cadastrar time', error.message);
+        if (error.code === '23503') {
+            return badRequest(res, 'Não foi possível cadastrar pois o campeonato não existe');
+        }
         return serverError(res, 'Erro ao cadastrar time');
     }
 });

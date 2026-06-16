@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { BD } from "../../db.js";
 import { autenticarToken } from "../middlewares/autenticacao.js";
-import { ok, created, badRequest, notFound, conflict, serverError } from "../../utils/responses.js";
+import { ok, created, badRequest, notFound, conflict, serverError } from "../utils/responses.js";
 
 const router = Router();
 
@@ -31,16 +31,72 @@ router.get('/jogadores/:id_jogador', autenticarToken, async (req, res) => {
 router.put('/jogadores/:id_jogador', autenticarToken, async (req, res) => {
     const { id_jogador } = req.params;
     const { nome, id_time } = req.body;
-    try {
-        const verificar = await BD.query('SELECT * FROM jogadores WHERE id_jogador = $1', [id_jogador]);
-        if (verificar.rows.length === 0) return notFound(res, 'Jogador nao existe');
 
-        const comando = `UPDATE jogadores SET nome = $1, id_time = $2 WHERE id_jogador = $3`;
+    try {
+        const verificar = await BD.query(
+            'SELECT * FROM jogadores WHERE id_jogador = $1',
+            [id_jogador]
+        );
+
+        if (verificar.rows.length === 0) {
+            return notFound(res, 'Jogador nao existe');
+        }
+
+        if (!nome) {
+            return badRequest(res, 'Campo nome obrigatório');
+        }
+
+        if (!id_time) {
+            return badRequest(res, 'Campo id_time obrigatório');
+        }
+
+        // Verifica se o time existe
+        const time = await BD.query(
+            'SELECT * FROM times WHERE id_time = $1',
+            [id_time]
+        );
+
+        if (time.rows.length === 0) {
+            return badRequest(res, 'Time não existe');
+        }
+
+        // Verifica se já existe outro jogador com o mesmo nome no mesmo time
+        const jogadorExistente = await BD.query(
+            `SELECT * FROM jogadores
+            WHERE nome = $1
+            AND id_time = $2
+            AND id_jogador <> $3`,
+            [nome, id_time, id_jogador]
+        );
+
+        if (jogadorExistente.rows.length > 0) {
+            return conflict(
+                res,
+                'Já existe um jogador com esse nome neste time'
+            );
+        }
+
+        const comando = `
+            UPDATE jogadores
+            SET nome = $1, id_time = $2
+            WHERE id_jogador = $3
+        `;
+
         const valores = [nome, id_time, id_jogador];
+
         await BD.query(comando, valores);
-        return ok(res, { message: 'Jogador atualizado com sucesso' });
+
+        return ok(res, {
+            message: 'Jogador atualizado com sucesso'
+        });
+
     } catch (error) {
         console.error('Erro ao atualizar jogador', error.message);
+
+        if (error.code === '23503') {
+            return badRequest(res, 'Time não existe');
+        }
+
         return serverError(res, 'Erro ao atualizar jogador');
     }
 });
@@ -61,20 +117,57 @@ router.delete('/jogadores/:id_jogador', autenticarToken, async (req, res) => {
 
 router.post('/jogadores', autenticarToken, async (req, res) => {
     const { nome, id_time } = req.body;
-    try {
-        if (!nome || !id_time) return badRequest(res, 'Campos obrigatorios ausentes');
 
-        const jogadorExistente = await BD.query('SELECT * FROM jogadores WHERE nome = $1 AND id_time = $2', [nome, id_time]);
-        if (jogadorExistente.rows.length > 0) {
-            return conflict(res, 'Jogador ja existe');
+    try {
+        if (!nome) {
+            return badRequest(res, 'Campo nome obrigatório');
         }
 
-        const comando = `INSERT INTO jogadores(nome, id_time) VALUES($1, $2)`;
+        if (!id_time) {
+            return badRequest(res, 'Campo id_time obrigatório');
+        }
+
+        // Verifica se o time existe
+        const time = await BD.query(
+            'SELECT * FROM times WHERE id_time = $1',
+            [id_time]
+        );
+
+        if (time.rows.length === 0) {
+            return badRequest(res, 'Time não existe');
+        }
+
+        // Verifica se já existe jogador com mesmo nome no mesmo time
+        const jogadorExistente = await BD.query(
+            'SELECT * FROM jogadores WHERE nome = $1 AND id_time = $2',
+            [nome, id_time]
+        );
+
+        if (jogadorExistente.rows.length > 0) {
+            return conflict(
+                res,
+                'Já existe um jogador com esse nome neste time'
+            );
+        }
+
+        const comando = `
+            INSERT INTO jogadores(nome, id_time)
+            VALUES($1, $2)
+        `;
+
         const valores = [nome, id_time];
+
         await BD.query(comando, valores);
+
         return created(res, 'Jogador cadastrado com sucesso');
+
     } catch (error) {
         console.error('Erro ao cadastrar jogador', error.message);
+
+        if (error.code === '23503') {
+            return badRequest(res, 'Time não existe');
+        }
+
         return serverError(res, 'Erro ao cadastrar jogador');
     }
 });

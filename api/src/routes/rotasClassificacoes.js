@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { BD } from "../../db.js";
 import { autenticarToken } from "../middlewares/autenticacao.js";
-import { ok, created, badRequest, notFound, conflict, serverError } from "../../utils/responses.js";
+import { ok, created, badRequest, notFound, conflict, serverError } from "../utils/responses.js";
 
 const router = Router();
 
@@ -30,17 +30,95 @@ router.get('/classificacoes/:id_classificacao', autenticarToken, async (req, res
 
 router.put('/classificacoes/:id_classificacao', autenticarToken, async (req, res) => {
     const { id_classificacao } = req.params;
-    const { id_time, pontos, jogos, vitorias, empates, derrotas, saldo_gols, id_campeonato } = req.body;
-    try {
-        const verificar = await BD.query('SELECT * FROM classificacoes WHERE id_classificacao = $1', [id_classificacao]);
-        if (verificar.rows.length === 0) return notFound(res, 'Classificacao nao existe');
 
-        const comando = `UPDATE classificacoes SET id_time = $1, pontos = $2, jogos = $3, vitorias = $4, empates = $5, derrotas = $6, saldo_gols = $7, id_campeonato = $8 WHERE id_classificacao = $9`;
-        const valores = [id_time, pontos, jogos, vitorias, empates, derrotas, saldo_gols, id_campeonato, id_classificacao];
+    const {
+        id_time,
+        pontos,
+        jogos,
+        vitorias,
+        empates,
+        derrotas,
+        saldo_gols,
+        id_campeonato
+    } = req.body;
+
+    try {
+        const verificar = await BD.query(
+            'SELECT * FROM classificacoes WHERE id_classificacao = $1',
+            [id_classificacao]
+        );
+
+        if (verificar.rows.length === 0) {
+            return notFound(res, 'Classificacao nao existe');
+        }
+
+        if (!id_time) {
+            return badRequest(res, 'Campo id_time obrigatório');
+        }
+
+        if (!id_campeonato) {
+            return badRequest(res, 'Campo id_campeonato obrigatório');
+        }
+
+        // Verifica se o time existe
+        const time = await BD.query(
+            'SELECT * FROM times WHERE id_time = $1',
+            [id_time]
+        );
+
+        if (time.rows.length === 0) {
+            return badRequest(res, 'Time não existe');
+        }
+
+        // Verifica se o campeonato existe
+        const campeonato = await BD.query(
+            'SELECT * FROM campeonatos WHERE id_campeonato = $1',
+            [id_campeonato]
+        );
+
+        if (campeonato.rows.length === 0) {
+            return badRequest(res, 'Campeonato não existe');
+        }
+
+        const comando = `
+            UPDATE classificacoes
+            SET
+                id_time = $1,
+                pontos = $2,
+                jogos = $3,
+                vitorias = $4,
+                empates = $5,
+                derrotas = $6,
+                saldo_gols = $7,
+                id_campeonato = $8
+            WHERE id_classificacao = $9
+        `;
+
+        const valores = [
+            id_time,
+            pontos,
+            jogos,
+            vitorias,
+            empates,
+            derrotas,
+            saldo_gols,
+            id_campeonato,
+            id_classificacao
+        ];
+
         await BD.query(comando, valores);
-        return ok(res, { message: 'Classificacao atualizada com sucesso' });
+
+        return ok(res, {
+            message: 'Classificacao atualizada com sucesso'
+        });
+
     } catch (error) {
         console.error('Erro ao atualizar classificacao', error.message);
+
+        if (error.code === '23503') {
+            return badRequest(res, 'Time ou campeonato não existe');
+        }
+
         return serverError(res, 'Erro ao atualizar classificacao');
     }
 });
@@ -60,21 +138,94 @@ router.delete('/classificacoes/:id_classificacao', autenticarToken, async (req, 
 });
 
 router.post('/classificacoes', autenticarToken, async (req, res) => {
-    const { id_time, pontos, jogos, vitorias, empates, derrotas, saldo_gols, id_campeonato } = req.body;
-    try {
-        if (!id_time || id_campeonato === undefined) return badRequest(res, 'Campos obrigatorios ausentes');
+    const {
+        id_time,
+        pontos,
+        jogos,
+        vitorias,
+        empates,
+        derrotas,
+        saldo_gols,
+        id_campeonato
+    } = req.body;
 
-        const classificacaoExistente = await BD.query('SELECT * FROM classificacoes WHERE id_time = $1 AND id_campeonato = $2', [id_time, id_campeonato]);
-        if (classificacaoExistente.rows.length > 0) {
-            return conflict(res, 'Classificacao ja existe');
+    try {
+        if (!id_time) {
+            return badRequest(res, 'Campo id_time obrigatório');
         }
 
-        const comando = `INSERT INTO classificacoes(id_time, pontos, jogos, vitorias, empates, derrotas, saldo_gols, id_campeonato) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`;
-        const valores = [id_time, pontos, jogos, vitorias, empates, derrotas, saldo_gols, id_campeonato];
+        if (!id_campeonato) {
+            return badRequest(res, 'Campo id_campeonato obrigatório');
+        }
+
+        // Verifica se o time existe
+        const time = await BD.query(
+            'SELECT * FROM times WHERE id_time = $1',
+            [id_time]
+        );
+
+        if (time.rows.length === 0) {
+            return badRequest(res, 'Time não existe');
+        }
+
+        // Verifica se o campeonato existe
+        const campeonato = await BD.query(
+            'SELECT * FROM campeonatos WHERE id_campeonato = $1',
+            [id_campeonato]
+        );
+
+        if (campeonato.rows.length === 0) {
+            return badRequest(res, 'Campeonato não existe');
+        }
+
+        const classificacaoExistente = await BD.query(
+            'SELECT * FROM classificacoes WHERE id_time = $1 AND id_campeonato = $2',
+            [id_time, id_campeonato]
+        );
+
+        if (classificacaoExistente.rows.length > 0) {
+            return conflict(
+                res,
+                'Já existe uma classificação para este time neste campeonato'
+            );
+        }
+
+        const comando = `
+            INSERT INTO classificacoes(
+                id_time,
+                pontos,
+                jogos,
+                vitorias,
+                empates,
+                derrotas,
+                saldo_gols,
+                id_campeonato
+            )
+            VALUES($1,$2,$3,$4,$5,$6,$7,$8)
+        `;
+
+        const valores = [
+            id_time,
+            pontos,
+            jogos,
+            vitorias,
+            empates,
+            derrotas,
+            saldo_gols,
+            id_campeonato
+        ];
+
         await BD.query(comando, valores);
+
         return created(res, 'Classificacao cadastrada com sucesso');
+
     } catch (error) {
         console.error('Erro ao cadastrar classificacao', error.message);
+
+        if (error.code === '23503') {
+            return badRequest(res, 'Time ou campeonato não existe');
+        }
+
         return serverError(res, 'Erro ao cadastrar classificacao');
     }
 });

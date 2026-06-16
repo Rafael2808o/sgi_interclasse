@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { BD } from "../../db.js";
 import { autenticarToken } from "../middlewares/autenticacao.js";
-import { ok, created, badRequest, notFound, conflict, serverError } from "../../utils/responses.js";
+import { ok, created, badRequest, notFound, conflict, serverError } from "../utils/responses.js";
 
 const router = Router();
 
@@ -30,17 +30,97 @@ router.get('/campeonatos/:id_campeonato', autenticarToken, async (req, res) => {
 
 router.put('/campeonatos/:id_campeonato', autenticarToken, async (req, res) => {
     const { id_campeonato } = req.params;
-    const { nome, formato, data_inicio, data_fim, id_usuario, qtd_times, modalidade } = req.body;
-    try {
-        const verificar = await BD.query('SELECT * FROM campeonatos WHERE id_campeonato = $1', [id_campeonato]);
-        if (verificar.rows.length === 0) return notFound(res, 'Campeonato nao existe');
 
-        const comando = `UPDATE campeonatos SET nome = $1, formato = $2, data_inicio = $3, data_fim = $4, id_usuario = $5, qtd_times = $6, modalidade = $7 WHERE id_campeonato = $8`;
-        const valores = [nome, formato, data_inicio, data_fim, id_usuario, qtd_times, modalidade, id_campeonato];
+    const {
+        nome,
+        formato,
+        data_inicio,
+        data_fim,
+        id_usuario,
+        qtd_times,
+        modalidade
+    } = req.body;
+
+    try {
+        const verificar = await BD.query(
+            'SELECT * FROM campeonatos WHERE id_campeonato = $1',
+            [id_campeonato]
+        );
+
+        if (verificar.rows.length === 0) {
+            return notFound(res, 'Campeonato nao existe');
+        }
+
+        if (!nome) {
+            return badRequest(res, 'Campo nome obrigatório');
+        }
+
+        if (!id_usuario) {
+            return badRequest(res, 'Campo id_usuario obrigatório');
+        }
+
+        // Verifica se o usuário existe
+        const usuario = await BD.query(
+            'SELECT * FROM usuarios WHERE id_usuario = $1',
+            [id_usuario]
+        );
+
+        if (usuario.rows.length === 0) {
+            return badRequest(res, 'Usuário não existe');
+        }
+
+        // Verifica se já existe outro campeonato com o mesmo nome
+        const campeonatoExistente = await BD.query(
+            `SELECT * FROM campeonatos
+             WHERE nome = $1
+             AND id_campeonato <> $2`,
+            [nome, id_campeonato]
+        );
+
+        if (campeonatoExistente.rows.length > 0) {
+            return conflict(
+                res,
+                'Já existe um campeonato com esse nome'
+            );
+        }
+
+        const comando = `
+            UPDATE campeonatos
+            SET
+                nome = $1,
+                formato = $2,
+                data_inicio = $3,
+                data_fim = $4,
+                id_usuario = $5,
+                qtd_times = $6,
+                modalidade = $7
+            WHERE id_campeonato = $8
+        `;
+
+        const valores = [
+            nome,
+            formato,
+            data_inicio,
+            data_fim,
+            id_usuario,
+            qtd_times,
+            modalidade,
+            id_campeonato
+        ];
+
         await BD.query(comando, valores);
-        return ok(res, { message: 'Campeonato atualizado com sucesso' });
+
+        return ok(res, {
+            message: 'Campeonato atualizado com sucesso'
+        });
+
     } catch (error) {
         console.error('Erro ao atualizar campeonato', error.message);
+
+        if (error.code === '23503') {
+            return badRequest(res, 'Usuário não existe');
+        }
+
         return serverError(res, 'Erro ao atualizar campeonato');
     }
 });
@@ -60,21 +140,82 @@ router.delete('/campeonatos/:id_campeonato', autenticarToken, async (req, res) =
 });
 
 router.post('/campeonatos', autenticarToken, async (req, res) => {
-    const { nome, formato, data_inicio, data_fim, id_usuario, qtd_times, modalidade } = req.body;
-    try {
-        if (!nome) return badRequest(res, 'Campo nome obrigatorio');
+    const {
+        nome,
+        formato,
+        data_inicio,
+        data_fim,
+        id_usuario,
+        qtd_times,
+        modalidade
+    } = req.body;
 
-        const campeonatoExistente = await BD.query('SELECT * FROM campeonatos WHERE nome = $1', [nome]);
-        if (campeonatoExistente.rows.length > 0) {
-            return conflict(res, 'Campeonato ja existe');
+    try {
+        if (!nome) {
+            return badRequest(res, 'Campo nome obrigatório');
         }
 
-        const comando = `INSERT INTO campeonatos(nome, formato, data_inicio, data_fim, id_usuario, qtd_times, modalidade) VALUES($1,$2,$3,$4,$5,$6,$7)`;
-        const valores = [nome, formato, data_inicio, data_fim, id_usuario, qtd_times, modalidade];
+        if (!id_usuario) {
+            return badRequest(res, 'Campo id_usuario obrigatório');
+        }
+
+        // Verifica se o usuário existe
+        const usuario = await BD.query(
+            'SELECT * FROM usuarios WHERE id_usuario = $1',
+            [id_usuario]
+        );
+
+        if (usuario.rows.length === 0) {
+            return badRequest(res, 'Usuário não existe');
+        }
+
+        // Verifica se já existe campeonato com esse nome
+        const campeonatoExistente = await BD.query(
+            'SELECT * FROM campeonatos WHERE nome = $1',
+            [nome]
+        );
+
+        if (campeonatoExistente.rows.length > 0) {
+            return conflict(
+                res,
+                'Já existe um campeonato com esse nome'
+            );
+        }
+
+        const comando = `
+            INSERT INTO campeonatos(
+                nome,
+                formato,
+                data_inicio,
+                data_fim,
+                id_usuario,
+                qtd_times,
+                modalidade
+            )
+            VALUES($1,$2,$3,$4,$5,$6,$7)
+        `;
+
+        const valores = [
+            nome,
+            formato,
+            data_inicio,
+            data_fim,
+            id_usuario,
+            qtd_times,
+            modalidade
+        ];
+
         await BD.query(comando, valores);
+
         return created(res, 'Campeonato cadastrado com sucesso');
+
     } catch (error) {
         console.error('Erro ao cadastrar campeonato', error.message);
+
+        if (error.code === '23503') {
+            return badRequest(res, 'Usuário não existe');
+        }
+
         return serverError(res, 'Erro ao cadastrar campeonato');
     }
 });

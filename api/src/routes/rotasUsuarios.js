@@ -2,7 +2,7 @@ import { Router } from "express";
 import { BD } from "../../db.js";
 import bcrypt from 'bcrypt';
 import { autenticarToken } from "../middlewares/autenticacao.js";
-import { ok, created, badRequest, notFound, conflict, serverError, unauthorized } from "../../utils/responses.js";
+import { ok, created, badRequest, notFound, conflict, serverError, unauthorized } from "../utils/responses.js";
 import jwt from 'jsonwebtoken';
 
 const SECRET_KEY = "sua_chave_secreta";
