@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { BD } from "../../db.js";
 import { autenticarToken } from "../middlewares/autenticacao.js";
-import { ok, created, badRequest, notFound, conflict, serverError } from "../utils/responses.js";
+import { ok, created, badRequest, notFound, conflict, serverError } from "../../utils/responses.js";
 
 const router = Router();
 
