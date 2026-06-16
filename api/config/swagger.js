@@ -12,6 +12,7 @@ const documentacao = {
         }
     },
     servers: [
+        { url: 'http://localhost:3000', description: 'Servidor local' },
         { url: 'https://interclassemanager-seven.vercel.app', description: 'Servidor API' }
     ],
     security: [
@@ -51,6 +52,7 @@ const documentacao = {
                 }
             },
             post: {
+                security: [],
                 tags: ['Usuários'],
                 summary: 'Cadastrar novo usuário',
                 description: 'Cria um novo usuário com nome, email, senha e tipo.',
@@ -71,6 +73,7 @@ const documentacao = {
                 responses: {
                     201: { description: 'Usuário cadastrado com sucesso' },
                     400: { $ref: '#/components/responses/BadRequest' },
+                    409: { $ref: '#/components/responses/Conflict' },
                     500: { $ref: '#/components/responses/ServerError' }
                 }
             }
@@ -227,6 +230,7 @@ const documentacao = {
                 responses: {
                     201: { description: 'Time cadastrado com sucesso' },
                     400: { $ref: '#/components/responses/BadRequest' },
+                    409: { $ref: '#/components/responses/Conflict' },
                     500: { $ref: '#/components/responses/ServerError' }
                 }
             }
@@ -353,6 +357,7 @@ const documentacao = {
                 responses: {
                     201: { description: 'Partida cadastrada com sucesso' },
                     400: { $ref: '#/components/responses/BadRequest' },
+                    409: { $ref: '#/components/responses/Conflict' },
                     500: { $ref: '#/components/responses/ServerError' }
                 }
             }
@@ -475,6 +480,7 @@ const documentacao = {
                 responses: {
                     201: { description: 'Jogador cadastrado com sucesso' },
                     400: { $ref: '#/components/responses/BadRequest' },
+                    409: { $ref: '#/components/responses/Conflict' },
                     500: { $ref: '#/components/responses/ServerError' }
                 }
             }
@@ -589,6 +595,7 @@ const documentacao = {
                 responses: {
                     201: { description: 'Grupo cadastrado com sucesso' },
                     400: { $ref: '#/components/responses/BadRequest' },
+                    409: { $ref: '#/components/responses/Conflict' },
                     500: { $ref: '#/components/responses/ServerError' }
                 }
             }
@@ -705,6 +712,7 @@ const documentacao = {
                 responses: {
                     201: { description: 'Evento cadastrado com sucesso' },
                     400: { $ref: '#/components/responses/BadRequest' },
+                    409: { $ref: '#/components/responses/Conflict' },
                     500: { $ref: '#/components/responses/ServerError' }
                 }
             }
@@ -827,6 +835,7 @@ const documentacao = {
                 responses: {
                     201: { description: 'Classificação cadastrada com sucesso' },
                     400: { $ref: '#/components/responses/BadRequest' },
+                    409: { $ref: '#/components/responses/Conflict' },
                     500: { $ref: '#/components/responses/ServerError' }
                 }
             }
@@ -952,6 +961,7 @@ const documentacao = {
                 responses: {
                     201: { description: 'Campeonato cadastrado com sucesso' },
                     400: { $ref: '#/components/responses/BadRequest' },
+                    409: { $ref: '#/components/responses/Conflict' },
                     500: { $ref: '#/components/responses/ServerError' }
                 }
             }
@@ -1262,26 +1272,72 @@ const documentacao = {
                 }
             },
             NotFound: {
-                description: 'Recurso não encontrado',
+                description: 'Recurso não encontrado. A resposta deve retornar uma mensagem no formato "erro ao [ação]: não existe".',
                 content: {
                     'application/json': {
                         schema: {
                             type: 'object',
                             properties: {
-                                message: { type: 'string', example: 'Recurso não encontrado.' }
+                                message: { type: 'string', example: 'erro ao buscar usuario: não existe' }
+                            }
+                        },
+                        example: {
+                            message: 'erro ao buscar usuario: não existe'
+                        },
+                        examples: {
+                            naoExiste: {
+                                summary: 'Mensagem de recurso inexistente',
+                                value: {
+                                    message: 'erro ao buscar usuario: não existe'
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            Conflict: {
+                description: 'Conflito ao criar um item já existente. A resposta deve retornar uma mensagem no formato "erro ao cadastrar [item]: ja existe".',
+                content: {
+                    'application/json': {
+                        schema: {
+                            type: 'object',
+                            properties: {
+                                message: { type: 'string', example: 'erro ao cadastrar usuario: usuario ja existe' }
+                            }
+                        },
+                        example: {
+                            message: 'erro ao cadastrar usuario: usuario ja existe'
+                        },
+                        examples: {
+                            usuarioJaExiste: {
+                                summary: 'Mensagem de item já existente',
+                                value: {
+                                    message: 'erro ao cadastrar usuario: usuario ja existe'
+                                }
                             }
                         }
                     }
                 }
             },
             Unauthorized: {
-                description: 'Não autorizado - token inválido ou ausente',
+                description: 'Não autorizado - quando o token não é fornecido, a resposta deve retornar "erro ao autenticar: token não fornecido".',
                 content: {
                     'application/json': {
                         schema: {
                             type: 'object',
                             properties: {
-                                message: { type: 'string', example: 'Token inválido ou ausente.' }
+                                message: { type: 'string', example: 'erro ao autenticar: token não fornecido' }
+                            }
+                        },
+                        example: {
+                            message: 'erro ao autenticar: token não fornecido'
+                        },
+                        examples: {
+                            tokenNaoFornecido: {
+                                summary: 'Token ausente',
+                                value: {
+                                    message: 'erro ao autenticar: token não fornecido'
+                                }
                             }
                         }
                     }

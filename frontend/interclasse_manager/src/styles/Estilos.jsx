@@ -81,12 +81,14 @@ export const Logo = styled.img`
     brightness(1.1);
 
   @media (max-width: 900px) {
-    width: 280px;
+    width: 90vw;
+    max-width: 350px;
     margin-top: 0;
   }
 
   @media (max-width: 576px) {
-    width: 260px;
+    width: 95vw;
+    max-width: 320px;
     margin-top: 0;
   }
 `;
@@ -130,7 +132,7 @@ export const Footer = styled.p`
   /* Mobile */
   @media (max-width: 900px) {
     position: fixed;
-    bottom: 90px;
+    bottom: 65px;
     left: 0;
     width: 100%;
     text-align: center;
@@ -230,29 +232,41 @@ export const Input = styled.input`
 
   padding: 16px 16px 16px 48px;
 
-  background: rgba(255,255,255,.06);
+  background: #0d0d0d;
+  color: #fff;
 
   border: 1px solid rgba(255,255,255,.12);
-
   border-radius: 16px;
 
-  color: #f4f4f4;
-
   font-size: 14px;
-
   outline: none;
 
   transition: all .25s ease;
-
   box-sizing: border-box;
 
   &::placeholder {
-    color: #888;
+    color: #777;
   }
 
   &:focus {
-    border-color: rgba(197,160,89,.45);
-    background: rgba(255,255,255,.1);
+    background: #0d0d0d;
+    color: #fff;
+    border-color: #c5a059;
+    box-shadow: 0 0 12px rgba(197,160,89,.35);
+  }
+
+  &:not(:placeholder-shown) {
+    background: #0d0d0d;
+    color: #fff;
+  }
+
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #0d0d0d inset !important;
+    -webkit-text-fill-color: #fff !important;
+    transition: background-color 9999s ease-in-out 0s;
   }
 `;
 
@@ -425,16 +439,21 @@ export const CreateAccountRow = styled.div`
   display: flex;
   justify-content: center;
   gap: 8px;
+  text-align: center;
 `;
 
 export const CreateAccountLink = styled.button`
   background: none;
   border: none;
   color: #c5a059;
-  font-weight: 700;
-  cursor: pointer;
+  font-weight: 800;
   font-size: 13px;
   padding: 0;
+  margin: 0;
+  line-height: 13px;
+  vertical-align: middle;
+  cursor: pointer;
+  transform: translateY(-1px);
 
   &:hover {
     opacity: 0.85;
