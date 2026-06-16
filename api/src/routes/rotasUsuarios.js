@@ -69,18 +69,6 @@ router.delete('/usuarios/:id_usuario', autenticarToken, async (req, res) => {
 router.post('/usuarios', async (req, res) => {
     const { nome, email, senha, tipo } = req.body;
     try {
-        // Verificar token: rota documentada sem cadeado, mas bloqueada se não houver token válido
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return unauthorized(res, 'Token não fornecido');
-        }
-
-        const token = authHeader.split(' ')[1];
-        try {
-            jwt.verify(token, SECRET_KEY);
-        } catch (err) {
-            return unauthorized(res, 'Token inválido');
-        }
 
         if (!nome || !email || !senha) return badRequest(res, 'Campos obrigatorios ausentes');
 
