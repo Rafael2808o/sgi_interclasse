@@ -35,29 +35,31 @@ async function fazerLogin() {
             return;
         }
 
-        // 1. Liga o carregamento aqui
         setCarregando(true);
         setMensagem(''); 
 
-        const response = await fetch(
-            'https://interclassemanager-seven.vercel.app/login',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, senha }),
-            }
-        );
+const response = await fetch(
+  'https://interclassemanager-seven.vercel.app/login',
+  {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email: email.trim(),
+      senha,
+    }),
+  }
+);
 
         const data = await response.json();
 
-        if (!response.ok) {
-            setMensagem(data.message || 'Email ou senha inválidos');
-            // 2. Desliga se der erro de credenciais
-            setCarregando(false); 
-            return;
-        }
+if (!response.ok) {
+    setMensagem('Email ou senha incorretos');
+    setCarregando(false);
+    return;
+}
 
         if (lembrar) {
     await AsyncStorage.setItem(
@@ -74,16 +76,14 @@ async function fazerLogin() {
     await AsyncStorage.removeItem('DadosLogin');
 }
 
-        // 3. Desliga antes de navegar para a próxima tela
         setCarregando(false); 
         navigation.navigate('Principal');
 
     } catch (error) {
-        console.log(error);
-        setMensagem('Erro ao conectar com o servidor');
-        // 4. Desliga se o servidor cair ou der erro de rede
-        setCarregando(false); 
-    }
+    console.log('ERRO LOGIN:', error);
+    setMensagem(error.message || 'Erro ao conectar com o servidor');
+    setCarregando(false);
+}
 }
 
 useEffect(() => {
@@ -109,9 +109,9 @@ useEffect(() => {
         verificarLogin();
     });
 
-    verificarLogin(); // roda quando abre a tela pela primeira vez
+    verificarLogin(); 
 
-    return unsubscribe; // limpa o listener
+    return unsubscribe; 
 }, []);
 
 return (

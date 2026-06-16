@@ -97,10 +97,10 @@ export default function Login() {
 
             const data = await res.json().catch(() => ({}));
 
-            if (!res.ok) {
-                setMensagem(data.message || "Erro ao realizar login");
-                return;
-            }
+if (!res.ok) {
+    setMensagem("Email ou senha incorretos");
+    return;
+}
 
             const { token, usuario } = data;
 

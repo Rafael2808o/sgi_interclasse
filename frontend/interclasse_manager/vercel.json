@@ -1,14 +1,8 @@
 {
-    "version": 2,
-    "builds": [
-        {
-            "src": "App.jsx"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "App.jsx"
-        }
-    ]
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

@@ -11,7 +11,11 @@ const router = Router();
 
 router.get('/usuarios', autenticarToken, async (req, res) => {
     try {
-        const query = `SELECT * FROM usuarios ORDER BY id_usuario`;
+        const query = `
+    SELECT id_usuario, nome, email, tipo
+    FROM usuarios
+    ORDER BY id_usuario
+`;
         const usuarios = await BD.query(query);
         return ok(res, usuarios.rows);
     } catch (error) {
@@ -23,7 +27,12 @@ router.get('/usuarios', autenticarToken, async (req, res) => {
 router.get('/usuarios/:id_usuario', autenticarToken, async (req, res) => {
     const { id_usuario } = req.params;
     try {
-        const usuario = await BD.query('SELECT * FROM usuarios WHERE id_usuario = $1', [id_usuario]);
+        const usuario = await BD.query(
+    `SELECT id_usuario, nome, email, tipo
+     FROM usuarios
+     WHERE id_usuario = $1`,
+    [id_usuario]
+);
         if (usuario.rows.length === 0) return notFound(res, 'Usuario não existe');
         return ok(res, usuario.rows[0]);
     } catch (error) {
