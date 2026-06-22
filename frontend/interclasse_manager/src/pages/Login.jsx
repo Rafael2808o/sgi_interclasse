@@ -138,11 +138,7 @@ if (!res.ok) {
                         />
                     </LeftContent>
 
-                    {isMobile && (
-                        <Footer>
-                            © 2026 Interclasse Manager. Todos os direitos reservados.
-                        </Footer>
-                    )}
+
                 </LeftPanel>
 
                 <RightPanel>

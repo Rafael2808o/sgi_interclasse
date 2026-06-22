@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {    
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    Image,
-    Alert
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native'
 import { LinearGradient } from 'expo-linear-gradient';
@@ -27,6 +29,7 @@ export default function Login() {
     const [emailFocus, setEmailFocus] = useState(false);
     const [senhaFocus, setSenhaFocus] = useState(false);
     const [carregando, setCarregando] = useState(false);
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
 
 async function fazerLogin() {
     try {
@@ -114,201 +117,197 @@ useEffect(() => {
     return unsubscribe; 
 }, []);
 
-return (
-    <View style={styles.overlay}>
-        <View style={styles.container}>
+useEffect(() => {
+    const showSubscription = Keyboard.addListener(
+        'keyboardDidShow',
+        () => setKeyboardVisible(true)
+    );
 
-            <Image
-                source={require('../../../interclasse_manager_sgi/assets/logoverMob.png')}
-                style={styles.logo}
-                resizeMode="contain"
+    const hideSubscription = Keyboard.addListener(
+        'keyboardDidHide',
+        () => setKeyboardVisible(false)
+    );
+
+    return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+    };
+}, []);
+
+return (
+<KeyboardAvoidingView
+  style={{ flex: 1 }}
+  behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+>
+    <View style={styles.overlay}>
+      <View style={styles.container}>
+
+        <Image
+          source={require('../../../interclasse_manager_sgi/assets/logoverMob.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+
+        <View style={styles.card}>
+
+          <Text style={styles.titulo}>
+            Bem-vindo de volta!
+          </Text>
+
+          <Text style={styles.subtitulo}>
+            Faça login para continuar
+          </Text>
+
+          <Text style={styles.label}>E-mail</Text>
+
+          <View style={[
+            styles.inputContainer,
+            emailFocus && styles.inputFocused
+          ]}>
+            <Feather name="mail" size={22} color="#777" />
+
+            <TextInput
+              style={[styles.input, { outlineStyle: 'none' }]}
+              placeholder="seu@email.com"
+              placeholderTextColor="#777"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              onFocus={() => setEmailFocus(true)}
+              onBlur={() => setEmailFocus(false)}
+            />
+          </View>
+
+          <Text style={styles.label}>Senha</Text>
+
+          <View style={[
+            styles.inputContainer,
+            senhaFocus && styles.inputFocused
+          ]}>
+            <Feather name="lock" size={22} color="#777" />
+
+            <TextInput
+              style={[styles.input, { outlineStyle: 'none' }]}
+              placeholder="••••••••"
+              placeholderTextColor="#777"
+              secureTextEntry={showPassword}
+              value={senha}
+              onChangeText={setSenha}
+              onFocus={() => setSenhaFocus(true)}
+              onBlur={() => setSenhaFocus(false)}
+              underlineColorAndroid="transparent"
+              selectionColor="#c5a059"
+              cursorColor="#c5a059"
             />
 
-            <View style={styles.card}>
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Feather
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={22}
+                color="#777"
+              />
+            </TouchableOpacity>
+          </View>
 
-                    <Text style={styles.titulo}>
-                        Bem-vindo de volta!
-                    </Text>
+          <View style={styles.optionsRow}>
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              activeOpacity={0.8}
+              onPress={() => setLembrar(!lembrar)}
+            >
+              <View style={styles.switchRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.customSwitch,
+                    lembrar && styles.customSwitchActive
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() => setLembrar(!lembrar)}
+                >
+                  <View
+                    style={[
+                      styles.customThumb,
+                      lembrar && styles.customThumbActive
+                    ]}
+                  />
+                </TouchableOpacity>
 
-                    <Text style={styles.subtitulo}>
-                        Faça login para continuar
-                    </Text>
+                <Text style={styles.rememberText}>
+                  Lembrar de mim
+                </Text>
+              </View>
+            </TouchableOpacity>
 
-                    <Text style={styles.label}>
-                        E-mail
-                    </Text>
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert('Aviso', 'Função em desenvolvimento')
+              }
+            >
+              <Text style={styles.forgot}>
+                Esqueci minha senha
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-<View
-    style={[
-        styles.inputContainer,
-        emailFocus && styles.inputFocused
-    ]}
->
-<Feather
-    name="mail"
-    size={22}
-    color="#777"
-/>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            onPress={fazerLogin}
+            disabled={carregando}
+            style={{ opacity: carregando ? 0.7 : 1 }}
+          >
+            <LinearGradient
+              colors={['#111111', '#1b1b1b']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={styles.loginButton}
+            >
+              <Text style={styles.loginText}>
+                {carregando ? 'ENTRANDO...' : 'ENTRAR'}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
 
-    <TextInput
-style={[styles.input, { outlineStyle: 'none' }]}
-        placeholder="seu@email.com"
-        placeholderTextColor="#777"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        onFocus={() => setEmailFocus(true)}
-        onBlur={() => setEmailFocus(false)}
-    />
-</View>
+          {mensagem !== '' && (
+            <Text style={styles.error}>{mensagem}</Text>
+          )}
 
-                    <Text style={styles.label}>
-                        Senha
-                    </Text>
+          <View style={styles.registerRow}>
+            <Text style={styles.registerText}>
+              Ainda não tem uma conta?
+            </Text>
 
-                    <View
-    style={[
-        styles.inputContainer,
-        senhaFocus && styles.inputFocused
-    ]}
->
-<Feather
-    name="lock"
-    size={22}
-    color="#777"
-/>
-<TextInput
-
-    style={[styles.input, { outlineStyle: 'none' }]} 
-    placeholder="••••••••"
-    placeholderTextColor="#777"
-    secureTextEntry={showPassword}
-    value={senha}
-    onChangeText={setSenha}
-    onFocus={() => setSenhaFocus(true)}
-    onBlur={() => setSenhaFocus(false)}
-    underlineColorAndroid="transparent"
-    selectionColor="#c5a059"
-    cursorColor="#c5a059"
-/>
-
-    <TouchableOpacity
-        onPress={() => setShowPassword(!showPassword)}
-    >
-<Feather
-    name={showPassword ? 'eye-off' : 'eye'}
-    size={22}
-    color="#777"
-/>
-    </TouchableOpacity>
-</View>
-
-                    <View style={styles.optionsRow}>
-                        <TouchableOpacity
-                            style={styles.checkboxRow}
-                            activeOpacity={0.8}
-                            onPress={() => setLembrar(!lembrar)}
-                        >
-<View style={styles.switchRow}>
-    <TouchableOpacity
-        style={[
-            styles.customSwitch,
-            lembrar && styles.customSwitchActive
-        ]}
-        activeOpacity={0.8}
-        onPress={() => setLembrar(!lembrar)}
-    >
-        <View
-            style={[
-                styles.customThumb,
-                lembrar && styles.customThumbActive
-            ]}
-        />
-    </TouchableOpacity>
-
-    <Text style={styles.rememberText}>
-        Lembrar de mim
-    </Text>
-</View>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            onPress={() =>
-                                Alert.alert(
-                                    'Aviso',
-                                    'Função em desenvolvimento'
-                                )
-                            }
-                        >
-                            <Text style={styles.forgot}>
-                                Esqueci minha senha
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-<TouchableOpacity
-    activeOpacity={0.9}
-    onPress={fazerLogin}
-    disabled={carregando} 
-    style={{ opacity: carregando ? 0.7 : 1 }} 
->
-    <LinearGradient
-        colors={['#111111', '#1b1b1b']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={styles.loginButton}
-    >
-        <Text style={styles.loginText}>
-            {carregando ? 'ENTRANDO...' : 'ENTRAR'}
-        </Text>
-    </LinearGradient>
-</TouchableOpacity>
-
-                    {mensagem !== '' && (
-                        <Text style={styles.error}>
-                            {mensagem}
-                        </Text>
-                    )}
-
-                    <View style={styles.registerRow}>
-                        <Text style={styles.registerText}>
-                            Ainda não tem uma conta?
-                        </Text>
-
-                        <TouchableOpacity>
-                            <Text style={styles.registerLink}>
-                                Criar conta
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-
-</View>
-<View style={styles.footerWrapper}>
-
-    <View style={styles.footerTextWrapper}>
-        <Text style={styles.footerText}>
-            © 2026 Interclasse Manager. Todos os direitos reservados.
-        </Text>
-    </View>
-
-    <View style={styles.footerLinksContainer}>
-        <TouchableOpacity>
-            <Text style={styles.footerLink}>Termos de Uso</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity>
-            <Text style={styles.footerLink}>Política de Privacidade</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity>
-            <Text style={styles.footerLink}>Suporte</Text>
-        </TouchableOpacity>
-    </View>
-
-</View>
+            <TouchableOpacity>
+              <Text style={styles.registerLink}>
+                Criar conta
+              </Text>
+            </TouchableOpacity>
+          </View>
 
         </View>
+
+{!keyboardVisible && (
+  <View style={styles.footerWrapper}>
+    <View style={styles.footerLinksContainer}>
+      <TouchableOpacity>
+        <Text style={styles.footerLink}>Termos de Uso</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity>
+        <Text style={styles.footerLink}>Política de Privacidade</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity>
+        <Text style={styles.footerLink}>Suporte</Text>
+      </TouchableOpacity>
     </View>
+  </View>
+)}
+
+      </View>
+    </View>
+  </KeyboardAvoidingView>
 );
 }
 
@@ -343,8 +342,9 @@ logo: {
 },
 footerWrapper: {
     position: 'absolute',
-    bottom: 0,
-    width: '100%',
+    left: 0,
+    right: 0,
+    bottom: 10,
     alignItems: 'center',
 },
 
@@ -353,10 +353,10 @@ card: {
     maxWidth: 480,
     backgroundColor: 'rgba(18,18,18,0.92)',
     borderRadius: 28,
-    
-    marginTop: 40, 
-
+    marginTop: 1,
+    marginBottom: 20,
     padding: 22,
+
     borderWidth: 1,
     borderColor: 'rgba(197,160,89,0.20)',
     shadowColor: '#000',

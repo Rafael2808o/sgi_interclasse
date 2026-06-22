@@ -6,27 +6,31 @@ import fundo from "../assets/fundo.png";
 
 export const PageWrapper = styled.div`
   width: 100%;
-  min-height: 100dvh;
+  height: 100dvh;
   background: #000;
   display: flex;
   flex-direction: column;
   color: #fff;
   position: relative;
-  overflow-x: hidden;
 
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    height: 100dvh;
+    overflow: hidden;
+  }
 `;
 
 export const LoginWrapper = styled.div`
   flex: 1;
   display: flex;
   width: 100%;
-  min-height: calc(100dvh - 50px);
+  height: calc(100dvh - 50px);
 
   @media (max-width: 900px) {
     flex-direction: column;
-    min-height: auto;
+    height: calc(100dvh - 50px);
+    overflow: hidden;
   }
 `;
 
@@ -49,13 +53,13 @@ export const LeftPanel = styled.div`
   background-color: #000;
   box-shadow: none;
 
-  min-height: 180px;
+  min-height: 120px;
   padding: 15px 10px;
   justify-content: center;
 }
 
 @media (max-width: 576px) {
-  min-height: 170px;
+  min-height: 100px;
   padding: 15px 10px;
   justify-content: center;
 }
@@ -173,7 +177,7 @@ export const PanelCard = styled.div`
   backdrop-filter: blur(18px);
 
 @media (max-width: 576px) {
-  padding: 20px;
+  padding: 14px;
   border-radius: 20px;
   width: calc(100vw - 24px);
   max-width: none;

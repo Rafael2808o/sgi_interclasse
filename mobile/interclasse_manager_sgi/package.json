@@ -11,7 +11,7 @@
   "dependencies": {
     "@expo-google-fonts/jacquard-24": "^0.4.1",
     "@fontsource/jacquard-24": "^5.2.8",
-    "@react-native-async-storage/async-storage": "^3.1.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/drawer": "^7.11.1",
     "@react-navigation/native": "^7.3.0",
     "@react-navigation/native-stack": "^7.17.2",
